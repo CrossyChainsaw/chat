@@ -23,16 +23,23 @@
     <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
     <script>
         var socket = io.connect();
+        var lastMessageTime = 0;  // Time when the last message was sent
 
         // Emit message when form is submitted
         document.getElementById('message-form').onsubmit = function(e) {
             e.preventDefault();
             var message = document.getElementById('message-input').value.trim();  // Remove leading/trailing spaces
-            
-            // Check if the message is not empty
-            if (message !== "") {
+
+            // Check if the message is not empty and if at least 1 second has passed since the last message
+            var currentTime = Date.now();
+            if (message !== "" && (currentTime - lastMessageTime) >= 1000) {
                 socket.send(message);  // Send message to server
                 document.getElementById('message-input').value = '';  // Clear input
+                lastMessageTime = currentTime;  // Update the time of the last sent message
+            } else if (message === "") {
+                alert("Please type a message before sending.");
+            } else {
+                alert("You can only send one message per second.");
             }
         };
 
