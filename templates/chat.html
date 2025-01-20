@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Public Chat</title>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        // When the page loads, send the user's name to the chat
+        const name = "{{ name }}";
+
+        window.onload = () => {
+            const chatBox = document.getElementById('chat-box');
+            const input = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+
+            sendButton.addEventListener('click', () => {
+                const message = input.value.trim();
+                if (message) {
+                    socket.send({ name: name, message: message });
+                    input.value = '';
+                }
+            });
+
+            socket.on('message', (data) => {
+                const newMessage = document.createElement('p');
+                newMessage.textContent = `${data.name}: ${data.message}`;
+                chatBox.appendChild(newMessage);
+            });
+        };
+    </script>
+</head>
+<body>
+    <h1>Welcome to the Chat, {{ name }}!</h1>
+    <div id="chat-box" style="border: 1px solid #000; height: 300px; overflow-y: auto; margin-bottom: 10px;">
+    </div>
+    <input type="text" id="message-input" placeholder="Type a message">
+    <button id="send-button">Send</button>
+</body>
+</html>
