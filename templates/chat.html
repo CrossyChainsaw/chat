@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <title>Chat Room</title>
 </head>
 <body>
     <h1>Welcome, {{ name }}!</h1>
-    <div id="messages">
-        <!-- Messages will be displayed here -->
+    <div id="chat-history">
+        <h2>Chat History:</h2>
+        <ul id="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
     </div>
-    
-    <input type="text" id="message-input" placeholder="Type a message" autocomplete="off" />
+    <form id="message-form">
+        <input type="text" id="message-input" placeholder="Type a message...">
+        <button type="submit">Send</button>
+    </form>
 
+    <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
     <script>
-        // Connect to the Socket.IO server
-        const socket = io.connect('http://' + document.domain + ':' + location.port);
+        var socket = io.connect();
 
-        // Function to display messages
-        function displayMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.textContent = message;
-            document.getElementById('messages').appendChild(messageDiv);
-        }
+        // Emit message when form is submitted
+        document.getElementById('message-form').onsubmit = function(e) {
+            e.preventDefault();
+            var message = document.getElementById('message-input').value;
+            socket.send(message);  // Send message to server
+            document.getElementById('message-input').value = '';  // Clear input
+        };
 
-        // Handle incoming messages
+        // Listen for messages from the server
         socket.on('message', function(data) {
-            displayMessage(data);
-        });
-
-        // Send message when the user presses "Enter"
-        document.getElementById('message-input').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter' && this.value.trim() !== '') {
-                // Send message to the server
-                socket.send(this.value);
-                // Clear the input field
-                this.value = '';
-            }
+            var messagesList = document.getElementById('messages');
+            var newMessage = document.createElement('li');
+            newMessage.textContent = data;
+            messagesList.appendChild(newMessage);  // Append new message to chat
         });
     </script>
 </body>

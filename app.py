@@ -8,8 +8,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'  # Replace 'secret!' with a secure key in production
 socketio = SocketIO(app)
 
-# Global variables to store connected users
+# Global variables to store connected users and messages
 users = []
+messages = []  # Store chat messages
 
 # Route to render the homepage with the name form
 @app.route('/', methods=['GET', 'POST'])
@@ -27,11 +28,12 @@ def index():
 def chat(name):
     if name not in users:
         return redirect(url_for('index'))  # Redirect if user is not in the list
-    return render_template('chat.html', name=name)
+    return render_template('chat.html', name=name, messages=messages)
 
 # WebSocket event to handle messages
 @socketio.on('message')
 def handle_message(data):
+    messages.append(data)  # Store the new message in the list
     send(data, broadcast=True)  # Broadcast the message to all connected users
 
 if __name__ == '__main__':
