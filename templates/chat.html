@@ -1,40 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Public Chat</title>
-    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
-    <script>
-        const socket = io();
-
-        // When the page loads, send the user's name to the chat
-        const name = "{{ name }}";
-
-        window.onload = () => {
-            const chatBox = document.getElementById('chat-box');
-            const input = document.getElementById('message-input');
-            const sendButton = document.getElementById('send-button');
-
-            sendButton.addEventListener('click', () => {
-                const message = input.value.trim();
-                if (message) {
-                    socket.send({ name: name, message: message });
-                    input.value = '';
-                }
-            });
-
-            socket.on('message', (data) => {
-                const newMessage = document.createElement('p');
-                newMessage.textContent = `${data.name}: ${data.message}`;
-                chatBox.appendChild(newMessage);
-            });
-        };
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
 </head>
 <body>
-    <h1>Welcome to the Chat, {{ name }}!</h1>
-    <div id="chat-box" style="border: 1px solid #000; height: 300px; overflow-y: auto; margin-bottom: 10px;">
+    <h1>Welcome, {{ name }}!</h1>
+    <div id="messages">
+        <!-- Messages will be displayed here -->
     </div>
-    <input type="text" id="message-input" placeholder="Type a message">
-    <button id="send-button">Send</button>
+    
+    <input type="text" id="message-input" placeholder="Type a message" autocomplete="off" />
+
+    <script>
+        // Connect to the Socket.IO server
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Function to display messages
+        function displayMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            document.getElementById('messages').appendChild(messageDiv);
+        }
+
+        // Handle incoming messages
+        socket.on('message', function(data) {
+            displayMessage(data);
+        });
+
+        // Send message when the user presses "Enter"
+        document.getElementById('message-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && this.value.trim() !== '') {
+                // Send message to the server
+                socket.send(this.value);
+                // Clear the input field
+                this.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
