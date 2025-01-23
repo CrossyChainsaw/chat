@@ -53,11 +53,17 @@
         // Listen for messages from the server
         // Listen for messages from the server
         socket.on('message', function(data) {
-            var messagesList = document.getElementById('messages');
-            var newMessage = document.createElement('li');
-            newMessage.textContent = data;  // Since the server now sends a string, we can display it directly
-            messagesList.appendChild(newMessage);  // Append new message to chat
+            if (data.redirect) {
+                // Redirect the user to the given URL
+                window.location.href = data.redirect;
+            } else {
+                var messagesList = document.getElementById('messages');
+                var newMessage = document.createElement('li');
+                newMessage.textContent = data;  // Since the server now sends a string, we can display it directly
+                messagesList.appendChild(newMessage);  // Append new message to chat
+            }
         });
+
     </script>
 </body>
 </html>

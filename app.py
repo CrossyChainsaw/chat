@@ -1,10 +1,11 @@
 import eventlet
-eventlet.monkey_patch()
-from flask import Flask, render_template, request, redirect, url_for
+#eventlet.monkey_patch()
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO, send, join_room
 import random
 app = Flask(__name__)
 socketio = SocketIO(app)
+app.secret_key = 'your-secret-key'  # Important for session handling
 
 # Global variables to store connected users and messages
 users = []
@@ -40,6 +41,7 @@ def index():
     if request.method == 'POST':
         print('post request')
         name = generate_username()
+        session['username'] = name
         if name:
             users.append(name)  # Add the name to the users list
             return redirect(url_for('chat', name=name))
@@ -55,10 +57,16 @@ def chat(name):
 # WebSocket event to handle messages
 @socketio.on('message')
 def handle_message(data):
-    message_content = f"{data['username']}: {data['message']}"  # Format the message
-    messages.append(message_content)  # Store the formatted message
-    send(message_content, broadcast=True)  # Broadcast the formatted message
+    print(data['username'])
+    if data['username'] == session['username']:
+        message_content = f"{data['username']}: {data['message']}"  # Format the message
+        messages.append(message_content)  # Store the formatted message
+        send(message_content, broadcast=True)  # Broadcast the formatted message
+    else:
+        send({'redirect': 'https://www.youtube.com/watch?v=xvFZjo5PgG0'}, broadcast=False)
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    print("Starting the Flask server...")
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    
