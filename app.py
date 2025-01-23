@@ -1,23 +1,43 @@
-import eventlet
-eventlet.monkey_patch()
-
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, send, join_room
-
+import random
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'  # Replace 'secret!' with a secure key in production
 socketio = SocketIO(app)
 
 # Global variables to store connected users and messages
 users = []
 messages = []  # Store chat messages
+fruits = [
+    "Apple", "Apricot", "Avocado", "Banana", "Blackberry", "Blueberry", "Cherry", "Clementine", "Coconut", 
+    "Cranberry", "Currant", "Date", "Dragonfruit", "Elderberry", "Fig", "Grape", "Grapefruit", "Guava", 
+    "Honeydew Melon", "Jackfruit", "Kiwi", "Lemon", "Lime", "Lychee", "Mango", "Mulberry", "Nectarine", 
+    "Orange", "Papaya", "Passionfruit", "Peach", "Pear", "Pineapple", "Plum", "Pomegranate", "Raspberry", 
+    "Red currant", "Starfruit", "Tangerine", "Watermelon", "Zucchini", "Acai Berry", "Alfalfa Sprout", 
+    "Apple Pear", "Aprium", "Asian Pear", "Atemoya", "Banana Passionfruit", "Barbados Cherry", "Bing Cherry", 
+    "Black Currant", "Black Grapes", "Black Plum", "Blood Orange", "Boquila", "Buddha's Hand", "Cabelluda", 
+    "Cactoid Cactus", "Canistel", "Capulin Cherry", "Carambola", "Chayote", "Cherimoya", "Chokecherry", 
+    "Clementine Tangerine", "Cranberry Apple", "Damson Plum", "Date Palm", "Durian", "Elephant Apple", 
+    "Emu Apple", "Farkleberry", "Feijoa", "Finger Lime", "Goji Berry", "Golden Apple", "Gooseberry", 
+    "Grapes (Red)", "Grumichama", "Hala Fruit", "Hawthorn", "Horned Melon", "Indian Fig", "Indian Gooseberry", 
+    "Jabuticaba", "Jameo", "Jatoba", "Jelly Palm", "Jujube", "Kaffir Lime", "Kiwifruit", "Kumquat", 
+    "Langsat", "Longan", "Mamey", "Mango Steen", "Mango Papaya", "Marula", "Monkey Orange", "Muscadine", 
+    "Nance", "Olives", "Oregon Grape", "Pawpaw", "Persimmon", "Pitanga", "Pluot", "Pineberry", "Plumcot", 
+    "Prickly Pear", "Quince", "Rambutan", "Red Banana", "Salak", "Salvia", "Soursop", "Sugar Apple", 
+    "Surinam Cherry", "Tamarillo", "Tamarind", "Uva Ursi", "Yunnan Hackberry", "Zinfandel Grape"
+]
+def generate_username():
+    random_fruit = random.choice(fruits)
+    random_fruit = random_fruit.replace(' ', '_')
+    randint = random.choice(range(1, 54))
+    username = f"{random_fruit}_{randint}"
+    return username
 
 # Route to render the homepage with the name form
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # Get the name from the form
-        name = request.form['name']
+        print('post request')
+        name = generate_username()
         if name:
             users.append(name)  # Add the name to the users list
             return redirect(url_for('chat', name=name))
@@ -33,8 +53,10 @@ def chat(name):
 # WebSocket event to handle messages
 @socketio.on('message')
 def handle_message(data):
-    messages.append(data)  # Store the new message in the list
-    send(data, broadcast=True)  # Broadcast the message to all connected users
+    message_content = f"{data['username']}: {data['message']}"  # Format the message
+    messages.append(message_content)  # Store the formatted message
+    send(message_content, broadcast=True)  # Broadcast the formatted message
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
