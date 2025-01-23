@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
 </head>
-<body>
+<body style="background-color: #003366; color: white;">
+    <script>
+        let currentURL = window.location.href;
+        let name = currentURL.substring(currentURL.lastIndexOf('/') + 1);
+        localStorage.setItem('username', name);
+    </script>
+
     <h1>Welcome, {{ name }}!</h1>
     <div id="chat-history">
         <h2>Chat History:</h2>
@@ -29,11 +35,12 @@
         document.getElementById('message-form').onsubmit = function(e) {
             e.preventDefault();
             var message = document.getElementById('message-input').value.trim();  // Remove leading/trailing spaces
-
+            var username = localStorage.getItem('username')
             // Check if the message is not empty and if at least 1 second has passed since the last message
             var currentTime = Date.now();
             if (message !== "" && (currentTime - lastMessageTime) >= 1000) {
-                socket.send(message);  // Send message to server
+                var json_msg = {"message":message, "username": username};
+                socket.send(json_msg);  // Send message to server
                 document.getElementById('message-input').value = '';  // Clear input
                 lastMessageTime = currentTime;  // Update the time of the last sent message
             } else if (message === "") {
@@ -44,10 +51,11 @@
         };
 
         // Listen for messages from the server
+        // Listen for messages from the server
         socket.on('message', function(data) {
             var messagesList = document.getElementById('messages');
             var newMessage = document.createElement('li');
-            newMessage.textContent = data;
+            newMessage.textContent = data;  // Since the server now sends a string, we can display it directly
             messagesList.appendChild(newMessage);  // Append new message to chat
         });
     </script>
